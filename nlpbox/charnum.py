@@ -86,3 +86,12 @@ class CharNumberEncoder(object):
         else:
             word_vec += [0]*(self.word_len-len(word_vec))
         return word_vec
+
+if __name__ == '__main__':
+    import pandas
+    import time
+    t1 = time.time()
+    df = pandas.read_csv('')
+    charnum = CharNumberEncoder(df[''])
+    charnum.make_char_embed()
+    print time.time()
