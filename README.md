@@ -1,2 +1,2 @@
 # NLP Toolbox
-Collection of some of my nlp tools.
+Collection of some of nlp tools developed in ICN Singapore.
