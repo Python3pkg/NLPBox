@@ -45,10 +45,10 @@ class CharNumberEncoder(object):
            words.
         '''
         if self.char_map is None:
-            print '..no char_map, building new character map'
+            print('..no char_map, building new character map')
             self.build_char_map()
 
-        print '..total {} characters in char_map'.format(len(self.char_map))
+        print('..total {} characters in char_map'.format(len(self.char_map)))
 
         sents = []
         char_set = set()
@@ -60,7 +60,7 @@ class CharNumberEncoder(object):
                 word_vec = []
                 for c in word:
                     if c not in self.char_map:
-                        print '{} not in character map'.format(c)
+                        print('{} not in character map'.format(c))
                     else:
                         word_vec.append(self.char_map[c])
 
@@ -94,4 +94,4 @@ if __name__ == '__main__':
     df = pandas.read_csv('')
     charnum = CharNumberEncoder(df[''])
     charnum.make_char_embed()
-    print time.time()
+    print(time.time())

@@ -112,7 +112,7 @@ def preprocessData(sample_data):
         for line in f:
             __msg = replacePun(line)
             __sen = cleanData(__msg)
-            print '----------------'
+            print('----------------')
             __texts.append(__sen)
     f.close()
     return __texts

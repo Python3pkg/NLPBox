@@ -1,3 +1,3 @@
 
-from charnum import *
-from clean import *
+from .charnum import *
+from .clean import *
