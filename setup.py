@@ -1,7 +1,7 @@
 from distutils.core import setup
 from setuptools import find_packages
 
-version = '1.0.1'
+version = '1.1.1'
 setup(
     name='nlpbox',
     version=version,
@@ -11,7 +11,8 @@ setup(
                       'six>=1.9.0',
                       'scikit-learn>=0.17',
                       'pandas>=0.17',
-                      'scipy>=0.17'],
+                      'scipy>=0.17',
+                      'gensim>=1.0'],
     url='https://github.com/hycis/NLPBox',
     download_url = 'https://github.com/hycis/NLPBox/tarball/{}'.format(version),
     license='Apache 2.0, see LICENCE',

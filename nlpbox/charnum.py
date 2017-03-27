@@ -1,8 +1,8 @@
 import numpy as np
 from nltk.tokenize.regexp import WhitespaceTokenizer
 import pandas, os, pickle
-from tensorgraph.utils import make_one_hot
-
+from tensorgraph.utils import make_one_hot, get_file_from_url
+import gensim
 
 class CharNumberEncoder(object):
 
@@ -119,7 +119,7 @@ class CharNumberEncoder(object):
 
 
 
-    def make_char_embed(self, onehot=False, reverse_words=False, pad_mode='back'):
+    def make_char_embed(self, onehot=False, reverse_words=False, pad_mode='back', return_seqlen=False):
         '''DESCRIPTIONS:
                build array vectors of words and sentence, automatically skip non-ascii
                words. First tokenize the sentence into words, then convert each word
@@ -127,6 +127,7 @@ class CharNumberEncoder(object):
            PARAMS:
                reverse_words (bool): reverse the word order in a sentence
                pad_mode (back or front): pad zero at the back or front of sentence
+               return_seqlen (bool): return sequence length
         '''
         if self.char_map is None:
             print('..no char_map, building new character map')
@@ -135,6 +136,7 @@ class CharNumberEncoder(object):
         print('..total {} characters in char_map'.format(len(self.char_map)))
 
         sents = []
+        seqlens = []
         char_set = set()
         for paragraph in self.data_iterator:
             word_toks = self.tokenizer.tokenize(str(paragraph))
@@ -151,6 +153,9 @@ class CharNumberEncoder(object):
                 if len(word_vec) > 0:
                     word_vecs.append(self.spawn_word_vec(word_vec))
             word_vecs = np.asarray(word_vecs).astype('int16')
+            seqlen = len(word_vecs) if len(word_vecs) < self.sent_len else self.sent_len
+            seqlens.append(seqlen)
+
             if len(word_vecs) > self.sent_len:
                 words = word_vecs[:self.sent_len].astype('int16')
                 if reverse_words:
@@ -173,13 +178,18 @@ class CharNumberEncoder(object):
                     sents.append(zero_pad.astype('int16'))
 
         arr = np.asarray(sents).astype('int16')
+        seqlens = np.asarray(seqlens).astype('int16')
         if onehot:
             b, sl, wl = arr.shape
             arr = arr.flatten().astype('int16')
             arr = make_one_hot(arr, len(self.char_map))
             arr = arr.reshape(b, sl, wl, len(self.char_map))
             arr = arr.swapaxes(1, 3)
-        return arr
+
+        if return_seqlen:
+            return arr, seqlens
+        else:
+            return arr
 
 
     def spawn_word_vec(self, word_vec):
@@ -235,6 +245,84 @@ class CatNumberEncoder(object):
 
         self.data_iterator = self.data_iterator.astype('object').replace(self.cat_map)
         return self.data_iterator.values
+
+
+class Word2Vec(object):
+
+    def __init__(self, tokenizer=WhitespaceTokenizer(), sent_len=200):
+        self.sent_len = sent_len
+        self.tokenizer = tokenizer
+        self.w2v_dim = 300
+        this_dir = os.path.dirname(os.path.realpath(__file__))
+        model_dir = this_dir + '/model'
+        if not os.path.exists(model_dir):
+            os.makedirs(model_dir)
+        pretrained_path = model_dir + '/GoogleNews-vectors-negative300.bin.gz'
+        if not os.path.exists(pretrained_path):
+            raise Exception('pretrained vector file not exists: {}'.format(pretrained_path))
+        print('..loading model')
+        self.model = gensim.models.KeyedVectors.load_word2vec_format(pretrained_path, binary=True)
+
+
+    def make_word_embed(self, data_iterator, reverse_words=False, pad_mode='back', return_seqlen=False):
+        '''DESCRIPTIONS:
+               build array vectors of words and sentence, automatically skip non-ascii
+               words. First tokenize the sentence into words, then convert each word
+               into word embedding using the google pretrained vectors.
+           PARAMS:
+               reverse_words (bool): reverse the word order in a sentence
+               pad_mode (back or front): pad zero at the back or front of sentence
+               return_seqlen (bool): return sequence length
+        '''
+        sents = []
+        seqlens = []
+        for paragraph in data_iterator:
+            word_toks = self.tokenizer.tokenize(str(paragraph))
+            word_vecs = []
+            for word in word_toks:
+                word = word.strip()
+                if len(word) > 0:
+                    if word in self.model.vocab:
+                        word_vecs.append(self.model[word])
+                    else:
+                        word_vecs.append(np.random.uniform(-1,1, (self.w2v_dim)))
+                else:
+                    word_vecs.append(np.zeros(self.w2v_dim))
+
+
+            seqlen = len(word_vecs) if len(word_vecs) < self.sent_len else self.sent_len
+            seqlens.append(seqlen)
+            # print(seqlen)
+
+            if len(word_vecs) > self.sent_len:
+                words = word_vecs[:self.sent_len]
+                if reverse_words:
+                    words = np.flipud(words)
+                sents.append(words)
+
+            else:
+                if reverse_words:
+                    word_vecs = np.flipud(word_vecs)
+
+                zero_pad = np.zeros((self.sent_len-len(word_vecs), self.w2v_dim))
+                if len(word_vecs) > 0:
+                    if pad_mode == 'back':
+                        sents.append((np.vstack([np.asarray(word_vecs), zero_pad])))
+                    elif pad_mode == 'front':
+                        sents.append((np.vstack([zero_pad, np.asarray(word_vecs)])))
+                    else:
+                        raise Exception('pad_mode ({}) is neither (front) nor (back)'.format(pad_mode))
+                else:
+                    sents.append(zero_pad)
+
+        arr = np.asarray(sents)
+        seqlens = np.asarray(seqlens).astype('int16')
+
+        if return_seqlen:
+            return arr, seqlens
+        else:
+            return arr
+
 
 if __name__ == '__main__':
     import pandas
