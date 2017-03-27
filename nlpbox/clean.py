@@ -12,7 +12,7 @@ import re
 
 
 def replacePun(__msg):
-    __msg = __msg.decode('iso-8859-1').encode('utf-8').strip()
+    # __msg = __msg.decode('iso-8859-1').encode('utf-8').strip()
     __msg = __msg.lower()
     __msg = re.sub(r"\*", ' ', __msg)
     __msg = re.sub(r"\(", ' ', __msg)
