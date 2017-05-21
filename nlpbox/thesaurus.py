@@ -20,4 +20,4 @@ def thesaurus_str(string):
 
 
 if __name__ == '__main__':
-    print(thesaurus_str('hi how are you'))
+    print((thesaurus_str('hi how are you')))

@@ -73,14 +73,14 @@ class CharNumberEncoder(object):
         if self.char_map is None:
             print('..no char_map, building new character map')
             self.build_char_map()
-            print('..char_map size = {}'.format(len(self.char_map)))
+            print(('..char_map size = {}'.format(len(self.char_map))))
         sents = []
         for paragraph in self.data_iterator:
 
             sent_vec = []
             for c in str(paragraph):
                 if c not in self.char_map:
-                    print('{} not in character map'.format(c))
+                    print(('{} not in character map'.format(c)))
                 else:
                     sent_vec.append(self.char_map[c])
 
@@ -92,10 +92,10 @@ class CharNumberEncoder(object):
             mean_len = int(np.mean(sents_lens))
             std_len = int(np.std(sents_lens))
             max_len = mean_len + 2 * std_len
-            print('..mean char len = {}, std char len = {}, max char len = {}'.format(mean_len, std_len, max_len))
+            print(('..mean char len = {}, std char len = {}, max char len = {}'.format(mean_len, std_len, max_len)))
             charlen = max_len
         else:
-            print('..char len = {}'.format(charlen))
+            print(('..char len = {}'.format(charlen)))
 
         new_sents = []
         for sent_vec in sents:
@@ -133,7 +133,7 @@ class CharNumberEncoder(object):
             print('..no char_map, building new character map')
             self.build_char_map()
 
-        print('..total {} characters in char_map'.format(len(self.char_map)))
+        print(('..total {} characters in char_map'.format(len(self.char_map))))
 
         sents = []
         seqlens = []
@@ -146,7 +146,7 @@ class CharNumberEncoder(object):
                 word_vec = []
                 for c in word:
                     if c not in self.char_map:
-                        print('{} not in character map'.format(c))
+                        print(('{} not in character map'.format(c)))
                     else:
                         word_vec.append(self.char_map[c])
 
@@ -231,7 +231,7 @@ class CatNumberEncoder(object):
                 tbl[v] = idx
                 idx += 1
         self.cat_map = tbl
-        print(self.cat_map)
+        print((self.cat_map))
         return self.cat_map
 
 
@@ -331,4 +331,4 @@ if __name__ == '__main__':
     df = pandas.read_csv('')
     charnum = CharNumberEncoder(df[''])
     charnum.make_char_embed()
-    print(time.time())
+    print((time.time()))
